@@ -1,0 +1,54 @@
+{
+  "@id": "dtmi:example:HVACUnit;1",
+  "@type": "Interface",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "unitId",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
+      "name": "displayName",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
+      "name": "ambientTemperature",
+      "schema": "double"
+    },
+    {
+      "@type": "Property",
+      "name": "ambientHumidity",
+      "schema": "double"
+    },
+    {
+      "@type": "Property",
+      "name": "totalPowerConsumption",
+      "schema": "double"
+    },
+    {
+      "@type": "Property",
+      "name": "totalOccupantCount",
+      "schema": "integer"
+    },
+    {
+      "@type": "Property",
+      "name": "lastUpdated",
+      "schema": "dateTime"
+    },
+    {
+      "@type": "Relationship",
+      "name": "containsRoom",
+      "properties": [
+        {
+          "@type": "Property",
+          "name": "targetModel",
+          "schema": "string"
+        }
+      ],
+      "target": "dtmi:example:HVACRoom;1"
+    }
+  ],
+  "@context": "dtmi:dtdl:context;2"
+}

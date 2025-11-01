@@ -1,0 +1,112 @@
+{
+  "@id": "dtmi:example:HVACRoom;1",
+  "@type": "Interface",
+  "contents": [
+    {
+      "@type": "Property",
+      "name": "roomId",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
+      "name": "displayName",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
+      "name": "currentTemp",
+      "schema": "double"
+    },
+    {
+      "@type": "Property",
+      "name": "targetTemp",
+      "schema": "double",
+      "writable": true
+    },
+    {
+      "@type": "Property",
+      "name": "ambientTemp",
+      "schema": "double"
+    },
+    {
+      "@type": "Property",
+      "name": "ambientHumidity",
+      "schema": "double"
+    },
+    {
+      "@type": "Property",
+      "name": "humidity",
+      "schema": "double"
+    },
+    {
+      "@type": "Property",
+      "name": "occupancy",
+      "schema": "boolean"
+    },
+    {
+      "@type": "Property",
+      "name": "occupantCount",
+      "schema": "integer"
+    },
+    {
+      "@type": "Property",
+      "name": "powerConsumption",
+      "schema": "double"
+    },
+    {
+      "@type": "Property",
+      "name": "hvacAction",
+      "schema": {
+        "@type": "Enum",
+        "valueSchema": "string",
+        "enumValues": [
+          { "name": "off", "enumValue": "off" },
+          { "name": "heat", "enumValue": "heat" },
+          { "name": "cool", "enumValue": "cool" }
+        ]
+      }
+    },
+    {
+      "@type": "Property",
+      "name": "hvacActionColor",
+      "schema": "string"
+    },
+    {
+      "@type": "Property",
+      "name": "fanSpeed",
+      "schema": "integer",
+      "writable": true
+    },
+    {
+      "@type": "Property",
+      "name": "timestamp",
+      "schema": "dateTime"
+    },
+    {
+      "@type": "Telemetry",
+      "name": "roomTelemetry",
+      "schema": {
+        "@type": "Object",
+        "fields": [
+          { "name": "EventType", "schema": "string" },
+          { "name": "Timestamp", "schema": "dateTime" },
+          { "name": "UnitID", "schema": "string" },
+          { "name": "RoomID", "schema": "string" },
+          { "name": "AmbientTemperature", "schema": "double" },
+          { "name": "AmbientHumidity", "schema": "double" },
+          { "name": "CurrentTemperature", "schema": "double" },
+          { "name": "TargetTemperature", "schema": "double" },
+          { "name": "Humidity", "schema": "double" },
+          { "name": "Occupancy", "schema": "boolean" },
+          { "name": "PowerConsumption", "schema": "double" },
+          { "name": "TotalOccupantCount", "schema": "integer" },
+          { "name": "Hour", "schema": "integer" },
+          { "name": "DayOfWeek", "schema": "integer" },
+          { "name": "DayOfYear", "schema": "integer" },
+          { "name": "TotalPowerConsumption", "schema": "double" }
+        ]
+      }
+    }
+  ],
+  "@context": "dtmi:dtdl:context;2"
+}
