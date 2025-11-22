@@ -1,0 +1,99 @@
+// create raw real time table schema (used if made from scratch)
+.create table ["HVAC ML Real Time Table"] (
+    EventType: string,
+    Timestamp: datetime,
+    UnitID: string,
+    RoomID: string,
+    AmbientTemperature: double,
+    AmbientHumidity: double,
+    CurrentTemperature: double,
+    TargetTemperature: double,
+    FanSpeed: int,
+    Humidity: double,
+    Occupancy: bool,
+    PowerConsumption: double,
+    TotalOccupantCount: int
+)
+
+// call raw table
+["HVAC ML Real Time Table"]
+
+// create processed real time table schema
+.create table ["Processed HVAC Real Time Table"] (
+    EventType: string,
+    Timestamp: datetime,
+    UnitID: string,
+    RoomID: string,
+    AmbientTemperature: double,
+    AmbientHumidity: double,
+    CurrentTemperature: double,
+    TargetTemperature: double,
+    FanSpeed: int,
+    Humidity: double,
+    Occupancy: bool,
+    PowerConsumption: double,
+    TotalOccupantCount: int,
+    Hour: int,
+    DayOfWeek: int,
+    DayOfYear: int,
+    TotalPowerConsumption: double,
+    Scored_Probabilities_Cooling: double,
+    Scored_Probabilities_Heating: double,
+    Scored_Probabilities_Off: double,
+    Scored_Labels: string
+)
+
+// create schema update function
+.create-or-alter function with (docstring = "HVAC training features over 1-minute steps")
+GetHVACRealtimeTraining()
+{
+    let RoomData =
+        ["HVAC ML Real Time Table"]
+        | where EventType == "sensor_reading"
+        | extend TimestampDT = todatetime(Timestamp)
+        | extend TimestampMinute = bin(TimestampDT, 1m);
+    let UnitTotals =
+        ["HVAC ML Real Time Table"]
+        | where EventType == "sensor_reading"
+        | extend TimestampDT = todatetime(Timestamp)
+        | summarize TotalPowerConsumption = sum(PowerConsumption)
+            by UnitID, TimestampMinute = bin(TimestampDT, 1m);
+    RoomData
+    | join kind = leftouter UnitTotals on UnitID, TimestampMinute
+    | extend
+        FanSpeed = toint(FanSpeed),
+        TotalOccupantCount = toint(TotalOccupantCount),
+        Hour = toint(datetime_part("hour", TimestampDT)),
+        DayOfWeek = toint(dayofweek(TimestampDT) / 1d),
+        DayOfYear = toint(datetime_part("dayofyear", TimestampDT))
+    | project
+        EventType,
+        Timestamp = TimestampDT,
+        UnitID,
+        RoomID,
+        AmbientTemperature,
+        AmbientHumidity,
+        CurrentTemperature,
+        TargetTemperature,
+        FanSpeed,
+        Humidity,
+        Occupancy,
+        PowerConsumption,
+        TotalOccupantCount,
+        Hour,
+        DayOfWeek,
+        DayOfYear,
+        TotalPowerConsumption
+}
+
+// update table schema using above function
+.set-or-replace ["Processed HVAC Real Time Table"]
+<|
+GetHVACRealtimeTraining()
+
+// initiate continuous ingestion for streaming data
+.alter table ["Processed HVAC Real Time Table"] policy update
+@'[{"IsEnabled": true,"Source": "HVAC ML Real Time Table","Query": "GetHVACRealtimeTraining()","IsTransactional": true}]'
+
+// call table
+["Processed HVAC Real Time Table"]
