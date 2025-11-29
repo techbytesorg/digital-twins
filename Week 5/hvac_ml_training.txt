@@ -1,0 +1,90 @@
+// get sample of 1000 data points
+['HVAC ML Parquet Table'] 
+| take 1000
+
+// create function to process table schema
+.create-or-alter function with (docstring = "HVAC training features over 1-minute steps")
+GetHVACTraining()
+{
+    let RoomData =
+        ['HVAC ML Parquet Table']
+        | where EventType == "sensor_reading"
+        | extend TimestampDT = todatetime(Timestamp)
+        | extend TimestampMinute = bin(TimestampDT, 1m);
+    let UnitTotals =
+        ['HVAC ML Parquet Table']
+        | where EventType == "sensor_reading"
+        | extend TimestampDT = todatetime(Timestamp)
+        | summarize TotalPowerConsumption = sum(PowerConsumption)
+            by UnitID, TimestampMinute = bin(TimestampDT, 1m);
+    RoomData
+    | join kind=leftouter UnitTotals on UnitID, TimestampMinute
+    | extend
+        FanSpeed = toint(FanSpeed),
+        TotalOccupantCount = toint(TotalOccupantCount),
+        Hour = toint(datetime_part("hour", TimestampDT)),
+        DayOfWeek = toint(dayofweek(TimestampDT) / 1d),
+        DayOfYear = toint(datetime_part("dayofyear", TimestampDT))
+    | project
+        EventType,
+        Timestamp = TimestampDT,
+        UnitID,
+        RoomID,
+        AmbientTemperature,
+        AmbientHumidity,
+        CurrentTemperature,
+        TargetTemperature,
+        ControlAction,
+        FanSpeed,
+        Humidity,
+        Occupancy,
+        PowerConsumption,
+        TotalOccupantCount,
+        Hour,
+        DayOfWeek,
+        DayOfYear,
+        TotalPowerConsumption
+}
+
+// create processed table schema
+.create table ['Processed HVAC ML Parquet Table'] (
+    EventType: string,
+    Timestamp: datetime,
+    UnitID: string,
+    RoomID: string,
+    AmbientTemperature: double,
+    AmbientHumidity: double,
+    CurrentTemperature: double,
+    TargetTemperature: double,
+    ControlAction: string,
+    FanSpeed: int,
+    Humidity: double,
+    Occupancy: bool,
+    PowerConsumption: double,
+    TotalOccupantCount: int,
+    Hour: int,
+    DayOfWeek: int,
+    DayOfYear: int,
+    TotalPowerConsumption: double
+)
+
+// set up continuous ingestion
+.alter table ['Processed HVAC ML Parquet Table'] policy update
+@'[{"IsEnabled": true,"Source": "HVAC ML Parquet Table","Query": "GetHVACTraining()","IsTransactional": true}]'
+
+// update schema with above function
+.set-or-replace ['Processed HVAC ML Parquet Table']
+<|
+GetHVACTraining()
+
+// get sample of 1000 data points
+['Processed HVAC ML Parquet Table']
+| take 1000
+
+// export parquet file to blob storage
+.export to parquet (
+    h@'<Azure Storage Link>'
+)
+<|
+['Processed HVAC ML Parquet Table']
+
