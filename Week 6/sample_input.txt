@@ -1,0 +1,16 @@
+{
+    "RoomID": "room3",
+    "AmbientTemperature": 18.9,
+    "AmbientHumidity": 65.9,
+    "CurrentTemperature": 18.6,
+    "TargetTemperature": 23,
+    "FanSpeed": 0,
+    "Humidity": 51.9,
+    "Occupancy": false,
+    "PowerConsumption": 10,
+    "TotalOccupantCount": 0,
+    "Hour": 0,
+    "DayOfWeek": 1,
+    "DayOfYear": 244,
+    "TotalPowerConsumption": 1235.5
+}
